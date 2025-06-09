@@ -6,7 +6,13 @@ from service.k8s import get_namespaces_service
 
 from service.schedule import get_schedules_service
 from vui_common.utils.k8s_tracer import trace_k8s_async_method
+from datetime import datetime, timedelta
 
+def parse_timestamp(ts_str):
+    try:
+        return datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%SZ")
+    except Exception:
+        return None
 
 def _build_data(phase, counter, total_count):
     return {'label': phase,
@@ -133,7 +139,35 @@ async def get_stats_service():
 
     schedules_stats = _schedules_stats(schedules)
 
-    last_backup_sorted = sorted(backups, key=_get_completion_timestamp, reverse=True)[:5]
+    #
+    # get backups of the last 24 hours
+    #
+    # Current time and time threshold
+    now = datetime.now()
+    time_threshold = now - timedelta(hours=0)
+
+    # Filtering of backups performed in the last 24 hours
+    recent_backups = [
+        b for b in backups
+        if (ts := _get_completion_timestamp(b))
+           and (dt := parse_timestamp(ts))
+           and dt >= time_threshold
+    ]
+
+    # If present, sort recent; otherwise fallback to most recent overall
+    if recent_backups:
+        last_backup_sorted = sorted(
+            recent_backups,
+            key=lambda b: parse_timestamp(_get_completion_timestamp(b)),
+            reverse=True
+        )
+    else:
+        last_backup_sorted = sorted(
+            backups,
+            key=lambda b: parse_timestamp(_get_completion_timestamp(b)),
+            reverse=True
+        )[:10]
+    #
 
     scheduled_namespace = _get_all_scheduled_namespace(schedules)
     all_ns = await get_namespaces_service()
