@@ -117,6 +117,35 @@ def _get_completion_timestamp(item):
     return ''
 
 
+def _latest_backup(backups):
+    #
+    # get backups of the last 24 hours
+    #
+    # Current time and time threshold
+    now = datetime.now()
+
+    def valid_backup(b):
+        time_threshold = now - timedelta(hours=24)
+        ts = _get_completion_timestamp(b)
+        if ts is None:
+            return False
+        dt = parse_timestamp(ts)
+        return dt is not None and dt >= time_threshold
+
+    recent_backups = [b for b in backups if valid_backup(b)]
+
+    def sort_key(b):
+        ts = _get_completion_timestamp(b)
+        return parse_timestamp(ts) or datetime.min  # fallback
+
+    if recent_backups:
+        last_backup_sorted = sorted(recent_backups, key=sort_key, reverse=True)
+    else:
+        valid_fallbacks = [b for b in backups if sort_key(b) != datetime.min]
+        last_backup_sorted = sorted(valid_fallbacks, key=sort_key, reverse=True)[:10]
+
+    return last_backup_sorted
+
 @trace_k8s_async_method(description="Get service stats")
 async def get_stats_service():
     backups = await get_backups_service()
@@ -139,35 +168,7 @@ async def get_stats_service():
 
     schedules_stats = _schedules_stats(schedules)
 
-    #
-    # get backups of the last 24 hours
-    #
-    # Current time and time threshold
-    now = datetime.now()
-    time_threshold = now - timedelta(hours=0)
-
-    # Filtering of backups performed in the last 24 hours
-    recent_backups = [
-        b for b in backups
-        if (ts := _get_completion_timestamp(b))
-           and (dt := parse_timestamp(ts))
-           and dt >= time_threshold
-    ]
-
-    # If present, sort recent; otherwise fallback to most recent overall
-    if recent_backups:
-        last_backup_sorted = sorted(
-            recent_backups,
-            key=lambda b: parse_timestamp(_get_completion_timestamp(b)),
-            reverse=True
-        )
-    else:
-        last_backup_sorted = sorted(
-            backups,
-            key=lambda b: parse_timestamp(_get_completion_timestamp(b)),
-            reverse=True
-        )[:10]
-    #
+    last_backup_sorted = _latest_backup(backups)
 
     scheduled_namespace = _get_all_scheduled_namespace(schedules)
     all_ns = await get_namespaces_service()
