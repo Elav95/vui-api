@@ -5,8 +5,8 @@ from typing import List, Dict
 from fastapi import HTTPException
 
 from service.utils.download_request import (create_download_request,
-                                            download_and_extract_backup,
-                                            cleanup_download_request)
+                                            download_and_extract_backup)
+
 from schemas.velero_storage_class import VeleroStorageClass
 
 from vui_common.utils.k8s_tracer import trace_k8s_async_method
