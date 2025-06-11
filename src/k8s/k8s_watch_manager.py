@@ -1,7 +1,7 @@
 import asyncio
 import json
 from datetime import datetime
-
+import traceback
 from kubernetes_asyncio import client, config, watch
 from vui_common.logger.logger_proxy import logger
 from vui_common.configs.config_proxy import config_app
@@ -72,7 +72,7 @@ class K8sWatchManager:
                             namespace=namespace,
                             plural=plural,
                             resource_version=last_resource_version,
-                            timeout_seconds=10
+                            timeout_seconds=60
                     ):
                         event_type = event["type"]
                         resource_name = event["object"]["metadata"]["name"]
@@ -96,17 +96,20 @@ class K8sWatchManager:
                         await self.send_global_message(message)
 
                 except client.exceptions.ApiException as e:
-                    if e.status == 410:  # ResourceVersion troppo vecchio
+                    logger.error(f"❌ Unexpected error: {str(e)}\n{traceback.format_exc()}")
+                    if e.status == 410:  # ResourceVersion too old
                         logger.watch(f"⚠️ ResourceVersion expired for {plural}, reset...")
-                        # return await self.watch_velero_resource(plural, namespace)  # Riavvia il watch
+                        return await self.watch_velero_resource(plural, namespace)  # Restart the watch
                     else:
                         logger.error(f"❌ API error in the watch of {plural}: {e}")
                 except Exception as e:
+                    logger.error(f"❌ Unexpected error: {str(e)}\n{traceback.format_exc()}")
                     logger.error(f"⚠️ General error in the watch of {plural}: {e}")
                 finally:
                     # TODO: check why it disconnects
-                    # print(f"🔄 Reconnection to {plural} in 5 seconds...")
-                    await asyncio.sleep(5)
+                    logger.info(f"🔄 Reconnection to {plural} in 2 seconds...")
+                    await w.close()
+                    await asyncio.sleep(2)
 
         except Exception as e:
             logger.error(f"⚠️ Watch startup error for {plural}: {e}")
@@ -229,8 +232,9 @@ class K8sWatchManager:
                     logger.error(f"⚠️ [{user_id}] General error in watch for {watch_target}: {e}")
                 finally:
                     # TODO: check why it disconnects
-                    # print(f"🔄 [{user_id}] Reconnecting to {watch_target} in 5 seconds...")
-                    await asyncio.sleep(5)
+                    logger.info(f"🔄 [{user_id}] Reconnecting to {watch_target} in 2 seconds...")
+                    await w.close()
+                    await asyncio.sleep(2)
 
         # 📌 Start the watch as a separate async task and store it in the user's watch list
         self.user_watch_tasks[user_id][plural] = asyncio.create_task(user_watch())

@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [0.3.0] - 2025-06-11
+
+### ✨ Added
+- **API**: added deletion logic for server status and backup requests (`bc08088`)
+- **Stats**: improved logic for retrieving recent backups (`bde1cec`)
+
+### 🛠️ Fixed
+- **Stats**: handled `undefined` value for `completion_time` in recent backups (`5f57154`)
+
+### 🔧 Changed
+- **Kubernetes**: updated timeouts, dependencies, and logging for `K8sWatcherManager` (`11cff33`)
+- **Dependencies**: general project dependency updates (`ee1bd94`)
+
 ## [v0.2.7] - 2025-05-20
 
 - Updated Python dependencies in requirements.txt
@@ -31,7 +44,7 @@ All notable changes to this project will be documented in this file.
 
 ## [v0.2.3] - 2025-03-19
 
-🛠️ ️Fixes
+🛠️ Fixes
 - Fixed retrieval of Velero version
 
 ## [v0.2.2] - 2025-03-13
@@ -229,6 +242,8 @@ Improvements
 ***
 
 ## Tags
+
+[v0.3.0] : [https://github.com/seriohub/vui-api/releases/tag/v0.3.0](https://github.com/seriohub/vui-api/releases/tag/v0.3.0)
 
 [v0.2.7] : [https://github.com/seriohub/vui-api/releases/tag/v0.2.6](https://github.com/seriohub/vui-api/releases/tag/v0.2.7)
 

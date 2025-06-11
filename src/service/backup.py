@@ -98,13 +98,14 @@ async def get_backup_details_service(backup_name: str) -> BackupResponseSchema:
 @trace_k8s_async_method(description="Delete backup")
 async def delete_backup_service(backup_name: str):
     """Delete a Velero backup using DeleteBackupRequest"""
+    timestamp = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
 
     # Create a DeleteBackupRequest
     delete_request_body = {
         "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
         "kind": RESOURCES[ResourcesNames.DELETE_BACKUP_REQUEST].kind,
         "metadata": {
-            "name": f"{backup_name}-delete",
+            "name": f"{backup_name}-delete-{timestamp}",
             "namespace": config_app.k8s.velero_namespace
         },
         "spec": {
