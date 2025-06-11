@@ -1,4 +1,3 @@
-import time
 import tempfile
 import tarfile
 import aiohttp
@@ -84,7 +83,7 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
 
         # Wait up to 5 attempts for the request to be processed
         for _ in range(5):
-            time.sleep(4)
+            await asyncio.sleep(5)
             download_request = custom_objects.get_namespaced_custom_object(
                 group=VELERO["GROUP"],
                 version=VELERO["VERSION"],
