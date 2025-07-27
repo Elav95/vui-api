@@ -57,7 +57,7 @@ class BackupSpec(BaseModel):
     snapshotMoveData: Optional[bool] = None
     datamover: Optional[str] = "velero"
     uploaderConfig: Optional[Dict[str, int]] = None
-    hooks: Optional[Dict[str, List[Dict[str, str]]]] = None
+    hooks: Optional[Dict[str, Any]] = None
 
 
 # BACKUP METADATA
