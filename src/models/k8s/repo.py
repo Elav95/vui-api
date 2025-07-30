@@ -6,7 +6,7 @@ from typing import Optional, Dict, List
 class BackupRepositoryMetadata(BaseModel):
     """Represents the metadata section of a BackupRepository."""
     name: str
-    generateName: Optional[str]
+    generateName: Optional[str] = None
     namespace: str
     uid: str
     resourceVersion: Optional[str]
