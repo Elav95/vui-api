@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.3.1] - 2025-07-28
+
+### 🐛 Fixes
+- **BackupRepository schema**: fixed a validation error in the Repositories section caused by a missing generateName field. It is now marked as optional with a default value.
+
+  [Closes  https://github.com/seriohub/vui-ui/issues/79]
+
+- **BackupResponse schema**: improved robustness when parsing backup hook definitions.
+Now handles unexpected data structures in:
+
+  - labelSelector (was dict, expected string)
+
+  - pre (was list, expected string)
+    Prevents UI breakage and 400 errors when displaying backup details.
+    
+    [Closes https://github.com/seriohub/vui-ui/issues/85]
+
 ## [0.3.0] - 2025-06-11
 
 ### ✨ Added
